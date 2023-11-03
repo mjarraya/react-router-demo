@@ -3,9 +3,9 @@
     "server"
   ],
   "compilerOptions": {
-    "module": "NodeNext", // generate ES modules
-    "target": "es5", // target ES5 API
-    "jsx": "react", // compile JSX to React.createElement statements for browser
+    "module": "NodeNext",
+    "target": "es5",
+    "jsx": "react-jsx",
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,

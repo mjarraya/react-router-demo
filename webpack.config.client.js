@@ -28,6 +28,10 @@ module.exports = {
           configFile: 'tsconfig.client.json',
         },
       },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
     ],
   },
   plugins: [new CleanWebpackPlugin(), new HtmlWebpackPlugin({ template: 'index.html' }), new WebpackManifestPlugin()],

@@ -3,23 +3,40 @@ import express from 'express'
 import path from 'path'
 import fs from 'fs'
 import ReactDOM from 'react-dom/server'
-import { App } from '../App'
+import { createStaticRouter, createStaticHandler, StaticRouterProvider, StaticHandlerContext } from 'react-router-dom/server'
+import { createFetchRequest } from './request'
+import { routes } from '../routes'
 
 const app = express()
 
 app.use(express.static(path.resolve(__dirname, '../dist/static')))
+app.get('/favicon.ico', (req, res) => res.status(204));
+
+const handler = createStaticHandler(routes);
 
 app.get('*', (req, res) => {
-  const filePath = path.resolve(__dirname, 'static', 'index.html');
+  const filePath = path.resolve(__dirname, '../dist/static', 'index.html');
 
-  fs.readFile(filePath, 'utf8', (err, htmlData) => {
+  fs.readFile(filePath, 'utf8', async (err, htmlData) => {
     if (err) {
       console.log(filePath)
       console.error('err', err);
       return res.status(404).end()
     }
+    const fetchRequest = createFetchRequest(req)
+    const context = await handler.query(fetchRequest)
 
-    const html = ReactDOM.renderToString(<App />);
+    // Accessing matched routes outside of the react rendering tree
+    console.log(`Matched routes: ${JSON.stringify((context as StaticHandlerContext).matches.map(match => match.route))}`);
+
+    if (context instanceof Response) {
+      throw context;
+    }
+
+    const router = createStaticRouter(handler.dataRoutes, context as StaticHandlerContext)
+    const html = ReactDOM.renderToString(<React.StrictMode>
+      <StaticRouterProvider router={router} context={context as StaticHandlerContext} />
+    </React.StrictMode>);
 
     return res.send(
       htmlData.replace(
@@ -27,6 +44,7 @@ app.get('*', (req, res) => {
         `<div id="root">${html}</div>`
       )
     );
+
   });
 })
 
